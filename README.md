@@ -24,13 +24,13 @@ GitHub Pages has no application backend. Employer, agency and general inquiry fo
 
 ## Brand and content
 
-Logo concept 01 (APEX: geometric A with ascending curved path) is implemented as a lightweight vector adaptation of the approved concept, with deep navy and muted teal. The globe illustration is symbolic, not a claim of offices or an established country network. No fabricated clients, testimonials, placement statistics, licences or vacancies appear.
+The latest BRIDGE / REFINED 02 concept (angled navy supports and a connecting teal arch) is implemented as a lightweight vector adaptation of the approved reference, in deep navy #102D48 and muted teal #4E9F9B. Shared headers, footers, favicon, About page, hero illustration and social preview use this identity. The globe illustration is symbolic, not a claim of offices or an established country network. No fabricated clients, testimonials, placement statistics, licences or vacancies appear.
 
 Phone `77777777` is the temporary number supplied by the owner. The website uses Mongolia country code +976 for the call link. WhatsApp is not shown until a WhatsApp-enabled number is confirmed. Address and company email follow supplied project content. Jobs displays an honest empty state until verified vacancies are available.
 
 ## Checks
 
-`npm test` verifies every localized page, local link and asset, document language, canonical/alternate metadata, one primary heading, unique IDs and form label targets. Browser QA covers desktop/mobile layouts, navigation, language switching, FAQ disclosure, validation and request preview. `assets/social.png` is the raster social preview generated from `assets/social.svg`.
+`npm test` verifies every localized page, local link and asset, document language, canonical/alternate metadata, one primary heading, unique IDs and form label targets. Browser QA covers desktop/mobile layouts, navigation, language switching, FAQ disclosure, validation and request preview. `assets/bridge-social.png` is the raster social preview generated from `assets/bridge-social.svg`.
 
 ## Maintenance
 
