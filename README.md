@@ -14,7 +14,7 @@ npm test
 npm run dev
 ```
 
-Edit bilingual copy and company details in `src/content.mjs`. Shared page components and metadata are in `scripts/build.mjs`; visual styling and progressive interactions are in `assets/`. Run the build and commit both source and generated `docs/` files. GitHub Pages publishes `main` → `/docs`. `.nojekyll` ensures static output is served directly. Relative asset links support the `/ashid-apex/` project base path and direct navigation to every localized HTML page.
+Edit English copy and company details in `src/content.mjs` and Mongolian copy in `src/mn.mjs`. Shared page components and metadata are in `scripts/build.mjs`; visual styling and progressive interactions are in `assets/`. Run the build and commit both source and generated `docs/` files. GitHub Pages publishes `main` → `/docs`. `.nojekyll` ensures static output is served directly. Relative asset links support the `/ashid-apex/` project base path and direct navigation to every localized HTML page.
 
 The root opens Mongolian; every page has a corresponding English page and a language switch that keeps the current page. Core content, navigation, contact links and FAQs work without JavaScript.
 
