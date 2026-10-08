@@ -1,5 +1,5 @@
 import mn from './mn.mjs';
-export const company = {name:'Ashid Apex Consulting LLC',email:'Ashidapex.consulting@gmail.com',phone:'77777777',tel:'+97677777777',url:'https://mop03ko.github.io/ashid-apex'};
+export const company = {name:'Ashid Apex Consulting LLC',email:'Ashidapex.consulting@gmail.com',phone:'77777777',tel:'+97677777777',url:'https://aac.mn'};
 export const slugs=['home','about','services','industries','employers','partners','process','faq','jobs','contact','privacy','terms'];
 export const content={
 en:{

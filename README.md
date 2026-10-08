@@ -2,7 +2,9 @@
 
 Premium bilingual (Mongolian / English) corporate website for international recruitment and workforce solutions in Mongolia.
 
-Live: https://mop03ko.github.io/ashid-apex/
+Target custom domain: https://aac.mn/
+
+Migration prepared; activate only after domain DNS access is confirmed. See `DOMAIN-SETUP.md`.
 
 ## Edit and publish
 
