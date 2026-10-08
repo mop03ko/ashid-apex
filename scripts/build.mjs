@@ -51,3 +51,6 @@ await writeFile(new URL('sitemap.xml',out),'<?xml version="1.0" encoding="UTF-8"
 await writeFile(new URL('robots.txt',out),`User-agent: *\nAllow: /\nSitemap: ${company.url}/sitemap.xml\n`);
 console.log('Built 24 bilingual pages, entry page, 404, sitemap and assets.');
 
+
+// Keep the Pages custom domain in the generated publishing directory.
+await writeFile(new URL('CNAME',out),new URL(company.url).hostname+'\n');
