@@ -25,44 +25,24 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check FTP secrets
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          missing=0
-          for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
-            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See CPANEL-GIT.md."; missing=1; fi
-          done
-          [ $missing -eq 0 ] || exit 1
-          # Report the host's shape without printing it (secrets are masked in logs).
-          case "$FTP_SERVER" in *://*) echo "::error::FTP_SERVER must be a host name only. Remove ftp:// or ftps://."; exit 1;; esac
-          case "$FTP_SERVER" in *[[:space:]]*) echo "::error::FTP_SERVER contains spaces or a line break."; exit 1;; esac
-          case "$FTP_SERVER" in */*) echo "::error::FTP_SERVER must not contain '/'."; exit 1;; esac
-          case "$FTP_SERVER" in *:*) echo "::error::FTP_SERVER must not include a port."; exit 1;; esac
-          if ! getent ahosts "$FTP_SERVER" >/dev/null; then
-            echo "::error::FTP_SERVER does not resolve in DNS. Use the FTP Server value or the server IP shown in cPanel."
-            for host in ftp.aac.mn aac.mn; do
-              if getent ahosts "$host" >/dev/null; then echo "$host resolves"; else echo "$host does not resolve"; fi
-            done
-            exit 1
-          fi
-          echo "FTP_SERVER resolves in DNS."
-
       - name: Build and verify aac.mn package
         run: |
           npm test
           npm run cpanel -- https://aac.mn
 
-      # Uploads only changed files (tracked in .ftp-deploy-sync-state.json on the server).
-      # Files on the server that are not part of the site are left untouched.
-      - name: Upload to cPanel over FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          local-dir: ./dist/cpanel/public_html/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || './' }}
+      # Uploads over HTTPS (port 2083) with a cPanel API token. See CPANEL-GIT.md.
+      - name: Upload to cPanel
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+          CPANEL_DOCROOT: ${{ secrets.CPANEL_DOCROOT }}
+        run: node scripts/deploy-uapi.mjs
+
+      - name: Check live site
+        run: |
+          if curl -fsSL --max-time 30 https://aac.mn/mn/index.html | grep -q 'href="https://aac.mn/mn/index.html"'; then
+            echo "https://aac.mn serves the new build."
+          else
+            echo "::warning::Upload finished, but https://aac.mn did not return the new build. Check the Document Root and SSL."
+          fi

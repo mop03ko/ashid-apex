@@ -38,7 +38,7 @@ Phone `77777777` is the temporary number supplied by the owner. The website uses
 
 ## cPanel deployment
 
-Pushes to `main` deploy to https://aac.mn automatically via GitHub Actions once the FTP secrets are set; see `CPANEL-GIT.md`. To build a package manually:
+Pushes to `main` deploy to https://aac.mn automatically via GitHub Actions once the cPanel API secrets are set; see `CPANEL-GIT.md`. To build a package manually:
 
 ```sh
 npm run cpanel -- https://aac.mn

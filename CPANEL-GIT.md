@@ -2,21 +2,20 @@
 
 ## Automatic deployment (GitHub Actions, recommended)
 
-Every push to `main` runs `.github/workflows/deploy-aac.yml`: it tests the site, builds the package for https://aac.mn, and uploads `dist/cpanel/public_html/` to the cPanel Document Root over FTPS. Only changed files are uploaded; unrelated files on the server are not deleted. It can also be started manually from Actions > Deploy to aac.mn > Run workflow.
+Every push to `main` runs `.github/workflows/deploy-aac.yml`: it tests the site, builds the package for https://aac.mn, and uploads `dist/cpanel/public_html/` to the Document Root through the cPanel API over HTTPS (port 2083, `scripts/deploy-uapi.mjs`). Matching files are overwritten; unrelated files on the server are not deleted. It can also be started manually from Actions > Deploy to aac.mn > Run workflow. FTP is not used, so FTP passive ports do not need to be open.
 
 One-time setup:
 
-1. cPanel > Files > FTP Accounts: create an FTP account whose directory is the aac.mn Document Root (for example `public_html`). Use a strong password.
-2. Note the FTP server host shown under Configure FTP Client (often `ftp.aac.mn` or the server hostname).
-3. Back up the current Document Root (cPanel > Backup or File Manager > Compress), because automatic uploads replace matching files.
-4. GitHub > repository Settings > Secrets and variables > Actions > New repository secret:
-   - `FTP_SERVER`: FTP host from step 2
-   - `FTP_USERNAME`: full FTP username (for example `deploy@aac.mn`)
-   - `FTP_PASSWORD`: FTP password
-   - `FTP_SERVER_DIR` (optional): target folder relative to the FTP account, ending with `/`. Leave unset when the FTP account opens directly in the Document Root.
-5. Push to `main` or run the workflow manually, then confirm https://aac.mn.
+1. cPanel > Security > Manage API Tokens > Create: name it `github-deploy`, no expiry or a planned rotation date. Copy the token; it is shown only once.
+2. Back up the current Document Root (cPanel > Backup or File Manager > Compress), because uploads replace matching files.
+3. GitHub > repository Settings > Secrets and variables > Actions > New repository secret:
+   - `CPANEL_HOST`: the host you use to open cPanel, without `https://` or port (for example `aac.mn` or the server hostname)
+   - `CPANEL_USER`: the cPanel account username
+   - `CPANEL_TOKEN`: the API token from step 1
+   - `CPANEL_DOCROOT` (optional): Document Root relative to the account home. Defaults to `public_html`.
+4. Push to `main` or run the workflow manually, then confirm https://aac.mn.
 
-Never commit FTP credentials to the repository. The first run uploads every file; later runs compare against `.ftp-deploy-sync-state.json` stored on the server. Do not delete that file.
+Never commit the token to the repository. Revoke it in Manage API Tokens if it is exposed. FTP secrets from the earlier setup are no longer used and can be deleted.
 
 Use only one method. If automatic deployment is active, do not also use the cPanel Git deployment below.
 
