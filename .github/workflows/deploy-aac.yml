@@ -35,7 +35,20 @@ jobs:
           for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
             if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See CPANEL-GIT.md."; missing=1; fi
           done
-          exit $missing
+          [ $missing -eq 0 ] || exit 1
+          # Report the host's shape without printing it (secrets are masked in logs).
+          case "$FTP_SERVER" in *://*) echo "::error::FTP_SERVER must be a host name only. Remove ftp:// or ftps://."; exit 1;; esac
+          case "$FTP_SERVER" in *[[:space:]]*) echo "::error::FTP_SERVER contains spaces or a line break."; exit 1;; esac
+          case "$FTP_SERVER" in */*) echo "::error::FTP_SERVER must not contain '/'."; exit 1;; esac
+          case "$FTP_SERVER" in *:*) echo "::error::FTP_SERVER must not include a port."; exit 1;; esac
+          if ! getent ahosts "$FTP_SERVER" >/dev/null; then
+            echo "::error::FTP_SERVER does not resolve in DNS. Use the FTP Server value or the server IP shown in cPanel."
+            for host in ftp.aac.mn aac.mn; do
+              if getent ahosts "$host" >/dev/null; then echo "$host resolves"; else echo "$host does not resolve"; fi
+            done
+            exit 1
+          fi
+          echo "FTP_SERVER resolves in DNS."
 
       - name: Build and verify aac.mn package
         run: |
