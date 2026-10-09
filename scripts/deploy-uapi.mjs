@@ -1,22 +1,23 @@
 // Uploads dist/cpanel/public_html to a cPanel Document Root over HTTPS (cPanel API token).
-// Env: CPANEL_HOST, CPANEL_USER, CPANEL_TOKEN, optional CPANEL_DOCROOT (default public_html, relative to home).
+// Env: CPANEL_HOST, CPANEL_USER, CPANEL_TOKEN or CPANEL_PASSWORD, optional CPANEL_DOCROOT (default public_html, relative to home).
 // Matching files are overwritten; files that are not part of the site are left untouched.
 import {readdir,readFile} from 'node:fs/promises';
 import path from 'node:path';
 process.on('uncaughtException',e=>{console.error(`::error::${e.message}`);process.exit(1);});
 
-const {CPANEL_HOST:host='',CPANEL_USER:user='',CPANEL_TOKEN:token=''}=process.env;
+const {CPANEL_HOST:host='',CPANEL_USER:user='',CPANEL_TOKEN:token='',CPANEL_PASSWORD:password=''}=process.env;
 const docroot=(process.env.CPANEL_DOCROOT||'public_html').replace(/^\/+|\/+$/g,'');
-if(!host||!user||!token){console.error('CPANEL_HOST, CPANEL_USER and CPANEL_TOKEN are required.');process.exit(1);}
+if(!host||!user||!(token||password)){console.error('CPANEL_HOST, CPANEL_USER and CPANEL_TOKEN or CPANEL_PASSWORD are required.');process.exit(1);}
 if(/[:/\s]/.test(host)){console.error('CPANEL_HOST must be a host name only (no https://, port, path or spaces).');process.exit(1);}
 const base=process.env.CPANEL_URL||`https://${host}:2083`;
-const headers={Authorization:`cpanel ${user}:${token}`};
+// API token when available; otherwise the account password over HTTPS (Basic auth).
+const headers={Authorization:token?`cpanel ${user}:${token}`:`Basic ${Buffer.from(`${user}:${password}`).toString('base64')}`};
 const source=path.resolve(process.argv[2]||'dist/cpanel/public_html');
 
 async function call(url,init){
   const res=await fetch(url,{...init,headers});
   const text=await res.text();
-  if(res.status===401||res.status===403)throw new Error(`cPanel rejected the API token (HTTP ${res.status}). Check CPANEL_USER and CPANEL_TOKEN.`);
+  if(res.status===401||res.status===403)throw new Error(`cPanel rejected the login (HTTP ${res.status}). Check CPANEL_USER and CPANEL_TOKEN or CPANEL_PASSWORD. Two-factor authentication blocks password login.`);
   if(!res.ok)throw new Error(`HTTP ${res.status} from ${new URL(url).pathname}`);
   try{return JSON.parse(text);}catch{throw new Error(`Unexpected non-JSON response from ${new URL(url).pathname}`);}
 }

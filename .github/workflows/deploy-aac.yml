@@ -30,12 +30,13 @@ jobs:
           npm test
           npm run cpanel -- https://aac.mn
 
-      # Uploads over HTTPS (port 2083) with a cPanel API token. See CPANEL-GIT.md.
+      # Uploads over HTTPS (port 2083) with a cPanel API token or password. See CPANEL-GIT.md.
       - name: Upload to cPanel
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
           CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+          CPANEL_PASSWORD: ${{ secrets.CPANEL_PASSWORD }}
           CPANEL_DOCROOT: ${{ secrets.CPANEL_DOCROOT }}
         run: node scripts/deploy-uapi.mjs
 

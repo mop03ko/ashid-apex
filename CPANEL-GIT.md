@@ -12,6 +12,7 @@ One-time setup:
    - `CPANEL_HOST`: the host you use to open cPanel, without `https://` or port (for example `aac.mn` or the server hostname)
    - `CPANEL_USER`: the cPanel account username
    - `CPANEL_TOKEN`: the API token from step 1
+   - `CPANEL_PASSWORD`: use instead of `CPANEL_TOKEN` only when the host hides Manage API Tokens. It is the cPanel account password, so use a strong one and change it if exposed. Password login does not work with two-factor authentication.
    - `CPANEL_DOCROOT` (optional): Document Root relative to the account home. Defaults to `public_html`.
 4. Push to `main` or run the workflow manually, then confirm https://aac.mn.
 
