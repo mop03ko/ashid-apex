@@ -25,31 +25,25 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check FTP secrets
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          missing=0
-          for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
-            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See CPANEL-GIT.md."; missing=1; fi
-          done
-          exit $missing
-
       - name: Build and verify aac.mn package
         run: |
           npm test
           npm run cpanel -- https://aac.mn
 
-      # Uploads only changed files (tracked in .ftp-deploy-sync-state.json on the server).
-      # Files on the server that are not part of the site are left untouched.
-      - name: Upload to cPanel over FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          local-dir: ./dist/cpanel/public_html/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || './' }}
+      # Uploads over HTTPS (port 2083) with a cPanel API token or password. See CPANEL-GIT.md.
+      - name: Upload to cPanel
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+          CPANEL_PASSWORD: ${{ secrets.CPANEL_PASSWORD }}
+          CPANEL_DOCROOT: ${{ secrets.CPANEL_DOCROOT }}
+        run: node scripts/deploy-uapi.mjs
+
+      - name: Check live site
+        run: |
+          if curl -fsSL --max-time 30 https://aac.mn/mn/index.html | grep -q 'href="https://aac.mn/mn/index.html"'; then
+            echo "https://aac.mn serves the new build."
+          else
+            echo "::warning::Upload finished, but https://aac.mn did not return the new build. Check the Document Root and SSL."
+          fi
