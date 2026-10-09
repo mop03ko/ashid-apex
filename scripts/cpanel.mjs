@@ -1,6 +1,6 @@
 // Builds a cPanel-ready copy of the site: dist/cpanel/public_html + dist/ashid-apex-cpanel.zip
 // Usage: npm run cpanel -- https://your-domain.mn
-import {rm,writeFile,mkdir} from 'node:fs/promises';
+import {rm,writeFile,mkdir,copyFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 
@@ -44,6 +44,8 @@ Header set Cache-Control "no-cache"
 AddOutputFilterByType DEFLATE text/html text/css application/javascript text/javascript image/svg+xml application/xml text/plain
 </IfModule>
 `);
+// Direct inquiry delivery (PHP mail); GitHub Pages builds fall back to the email preview.
+await copyFile('server/contact.php',path.join(root,'contact.php'));
 execFileSync(process.execPath,['scripts/verify.mjs',root],{stdio:'inherit'});
 execFileSync('zip',['-r','-q','-X',zip,'.'],{cwd:root,stdio:'inherit'});
 console.log(`cPanel package for ${site}:\n  ${path.relative('.',root)}/\n  ${path.relative('.',zip)}`);
