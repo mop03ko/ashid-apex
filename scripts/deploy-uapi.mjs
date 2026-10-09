@@ -1,37 +1,11 @@
 // Uploads dist/cpanel/public_html to a cPanel Document Root over HTTPS (cPanel API token).
-// Env: CPANEL_HOST, CPANEL_USER, CPANEL_TOKEN or CPANEL_PASSWORD, optional CPANEL_DOCROOT (default public_html, relative to home).
+// Env: see scripts/cpanel-api.mjs (CPANEL_DOCROOT defaults to public_html, relative to home).
 // Matching files are overwritten; files that are not part of the site are left untouched.
 import {readdir,readFile} from 'node:fs/promises';
 import path from 'node:path';
-process.on('uncaughtException',e=>{console.error(`::error::${e.message}`);process.exit(1);});
 
-const {CPANEL_HOST:host='',CPANEL_USER:user='',CPANEL_TOKEN:token='',CPANEL_PASSWORD:password=''}=process.env;
-const docroot=(process.env.CPANEL_DOCROOT||'public_html').replace(/^\/+|\/+$/g,'');
-if(!host||!user||!(token||password)){console.error('CPANEL_HOST, CPANEL_USER and CPANEL_TOKEN or CPANEL_PASSWORD are required.');process.exit(1);}
-if(/[:/\s]/.test(host)){console.error('CPANEL_HOST must be a host name only (no https://, port, path or spaces).');process.exit(1);}
-const origin=process.env.CPANEL_URL||`https://${host}:2083`;
-// API token when available; otherwise sign in with the account password like the cPanel login page.
-const headers={};let base=origin;
-if(token)headers.Authorization=`cpanel ${user}:${token}`;
-else{
-  const res=await fetch(`${origin}/login/?login_only=1`,{method:'POST',body:new URLSearchParams({user,pass:password}),redirect:'manual'});
-  let r={};try{r=JSON.parse(await res.text());}catch{}
-  if(r.status!==1||!r.security_token){
-    const reason=r.message||r.reason||`HTTP ${res.status}`;
-    throw new Error(`cPanel login failed (${reason}). Check CPANEL_USER (the cPanel username, not an email) and CPANEL_PASSWORD by signing in at ${origin}. Two-factor authentication blocks password login.`);
-  }
-  headers.Cookie=(res.headers.getSetCookie?.()||[]).map(c=>c.split(';')[0]).join('; ');
-  base=origin+r.security_token;
-}
+import {call,host,user,docroot,base} from './cpanel-api.mjs';
 const source=path.resolve(process.argv[2]||'dist/cpanel/public_html');
-
-async function call(url,init){
-  const res=await fetch(url,{...init,headers});
-  const text=await res.text();
-  if(res.status===401||res.status===403)throw new Error(`cPanel rejected the login (HTTP ${res.status}). Check CPANEL_USER and CPANEL_TOKEN.`);
-  if(!res.ok)throw new Error(`HTTP ${res.status} from ${new URL(url).pathname}`);
-  try{return JSON.parse(text);}catch{throw new Error(`Unexpected non-JSON response from ${new URL(url).pathname}`);}
-}
 
 // Group files by directory, relative to the package root.
 const dirs=new Map();
@@ -64,3 +38,14 @@ for(const [rel,files] of [...dirs].sort(([a],[b])=>a.split('/').length-b.split('
   uploaded+=files.length;console.log(`${target}/: ${files.length} file(s)`);
 }
 console.log(`Uploaded ${uploaded} files to ~/${docroot} on ${host}.`);
+
+// SMTP settings for contact.php, written to the account home (outside the Document Root).
+const {SMTP_HOST:smtpHost='',SMTP_PORT:smtpPort='465',SMTP_USER:smtpUser='',SMTP_PASSWORD:smtpPass=''}=process.env;
+if(smtpHost&&smtpUser&&smtpPass){
+  const q=v=>`'${String(v).replace(/[\\']/g,m=>'\\'+m)}'`;
+  const content=`<?php\n// Written by the aac.mn deploy workflow. Do not edit; update the GitHub secrets instead.\nreturn ['host'=>${q(smtpHost)},'port'=>${Number(smtpPort)||465},'user'=>${q(smtpUser)},'pass'=>${q(smtpPass)}];\n`;
+  const form=new FormData();form.append('file','.ashid-apex-smtp.php');form.append('content',content);
+  const r=await call(`${base}/execute/Fileman/save_file_content`,{method:'POST',body:form});
+  if(r?.status!==1)throw new Error(`Could not save SMTP settings: ${(r?.errors||[]).join('; ')}`);
+  console.log(`Saved SMTP settings for contact.php (${smtpHost}:${Number(smtpPort)||465}).`);
+}else console.log('SMTP secrets not set; contact.php uses PHP mail().');

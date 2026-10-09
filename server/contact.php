@@ -74,22 +74,89 @@ $hits[] = $now;
 $subject = 'Ashid Apex website: ' . SUBJECTS[$kind];
 $message = $body . "\n\n---\nSent from the aac.mn " . ($lang === 'en' ? 'English' : 'Mongolian')
   . ' inquiry form on ' . gmdate('Y-m-d H:i') . " UTC.\nReply to this email to answer " . $name . '.';
+$encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
 $fromName = '=?UTF-8?B?' . base64_encode('Ashid Apex website') . '?=';
-$headers = implode("\r\n", [
+$headers = [
   'From: ' . $fromName . ' <' . RECIPIENT . '>',
   'Reply-To: ' . '=?UTF-8?B?' . base64_encode($name) . '?= <' . $email . '>',
   'MIME-Version: 1.0',
   'Content-Type: text/plain; charset=UTF-8',
   'Content-Transfer-Encoding: base64',
   'X-Mailer: ashid-apex-contact',
-]);
+];
+$encodedBody = chunk_split(base64_encode($message));
 
-$sent = mail(
-  RECIPIENT,
-  '=?UTF-8?B?' . base64_encode($subject) . '?=',
-  chunk_split(base64_encode($message)),
-  $headers,
-  '-f' . RECIPIENT
-);
+// SMTP settings live outside the Document Root (written by scripts/deploy-uapi.mjs).
+$configFile = dirname(__DIR__) . '/.ashid-apex-smtp.php';
+$smtp = is_file($configFile) ? (array) include $configFile : [];
 
+if (!empty($smtp['host']) && !empty($smtp['user']) && !empty($smtp['pass'])) {
+  $error = smtp_send($smtp, RECIPIENT, $encodedSubject, $headers, $encodedBody);
+  if ($error !== null) {
+    error_log('contact.php SMTP: ' . $error);
+  }
+  reply($error === null ? 200 : 502, ['ok' => $error === null]);
+}
+
+$sent = mail(RECIPIENT, $encodedSubject, $encodedBody, implode("\r\n", $headers), '-f' . RECIPIENT);
 reply($sent ? 200 : 502, ['ok' => $sent]);
+
+// Minimal authenticated SMTP client (implicit TLS on 465, STARTTLS otherwise).
+// Returns null on success or a short error without credentials.
+function smtp_send(array $cfg, string $to, string $subject, array $headers, string $body): ?string {
+  $host = (string) $cfg['host'];
+  $port = (int) ($cfg['port'] ?? 465);
+  $implicit = ($cfg['secure'] ?? ($port === 465 ? 'ssl' : 'tls')) === 'ssl';
+  $ctx = stream_context_create(['ssl' => ['peer_name' => $host, 'verify_peer' => true, 'verify_peer_name' => true]]);
+  $fp = @stream_socket_client(($implicit ? 'ssl://' : 'tcp://') . $host . ':' . $port, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $ctx);
+  if (!$fp) {
+    return "connect $host:$port failed: $errstr ($errno)";
+  }
+  stream_set_timeout($fp, 15);
+  $read = function () use ($fp): string {
+    $data = '';
+    while (($line = fgets($fp, 1024)) !== false) {
+      $data .= $line;
+      if (strlen($line) < 4 || $line[3] === ' ') {
+        break;
+      }
+    }
+    return $data;
+  };
+  $cmd = function (?string $line, int $expect) use ($fp, $read): ?string {
+    if ($line !== null) {
+      fwrite($fp, $line . "\r\n");
+    }
+    $res = $read();
+    return ((int) substr($res, 0, 3)) === $expect ? null : (trim(substr($res, 0, 200)) ?: 'no response');
+  };
+  $user = (string) $cfg['user'];
+  $steps = [[null, 220, 'greeting'], ['EHLO aac.mn', 250, 'EHLO']];
+  foreach ($steps as [$line, $code, $label]) {
+    if (($e = $cmd($line, $code)) !== null) { fclose($fp); return "$label: $e"; }
+  }
+  if (!$implicit) {
+    if (($e = $cmd('STARTTLS', 220)) !== null) { fclose($fp); return "STARTTLS: $e"; }
+    if (!stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) { fclose($fp); return 'TLS negotiation failed'; }
+    if (($e = $cmd('EHLO aac.mn', 250)) !== null) { fclose($fp); return "EHLO after TLS: $e"; }
+  }
+  $date = 'Date: ' . date(DATE_RFC2822);
+  $id = 'Message-ID: <' . bin2hex(random_bytes(12)) . '@aac.mn>';
+  $data = implode("\r\n", array_merge([$date, $id, 'To: <' . $to . '>', 'Subject: ' . $subject], $headers))
+    . "\r\n\r\n" . preg_replace('/^\./m', '..', $body);
+  $steps = [
+    ['AUTH LOGIN', 334, 'AUTH'],
+    [base64_encode($user), 334, 'AUTH user'],
+    [base64_encode((string) $cfg['pass']), 235, 'AUTH password'],
+    ['MAIL FROM:<' . $user . '>', 250, 'MAIL FROM'],
+    ['RCPT TO:<' . $to . '>', 250, 'RCPT TO'],
+    ['DATA', 354, 'DATA'],
+    [$data . "\r\n.", 250, 'message'],
+  ];
+  foreach ($steps as [$line, $code, $label]) {
+    if (($e = $cmd($line, $code)) !== null) { fclose($fp); return "$label: $e"; }
+  }
+  $cmd('QUIT', 221);
+  fclose($fp);
+  return null;
+}

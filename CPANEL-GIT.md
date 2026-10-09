@@ -16,6 +16,13 @@ One-time setup:
    - `CPANEL_DOCROOT` (optional): Document Root relative to the account home. Defaults to `public_html`.
 4. Push to `main` or run the workflow manually, then confirm https://aac.mn.
 
+Contact form email (recommended because aac.mn mail is hosted at mail.mn, not on cPanel): add these secrets so `contact.php` sends through mail.mn's SMTP server as `info@aac.mn`:
+   - `SMTP_HOST`: the outgoing (SMTP) server from mail.mn's mail client settings
+   - `SMTP_PORT` (optional): `465` (SSL, default) or `587` (STARTTLS)
+   - `SMTP_USER`: `info@aac.mn`
+   - `SMTP_PASSWORD`: the mailbox password
+   The deploy writes them to `~/.ashid-apex-smtp.php`, outside the Document Root. Without them, `contact.php` uses PHP `mail()`, which only works when cPanel Email Routing for aac.mn is set to Remote Mail Exchanger. SMTP errors (never credentials) are written to `public_html/error_log`, which `.htaccess` blocks from the web.
+
 Never commit the token to the repository. Revoke it in Manage API Tokens if it is exposed. FTP secrets from the earlier setup are no longer used and can be deleted.
 
 Use only one method. If automatic deployment is active, do not also use the cPanel Git deployment below.

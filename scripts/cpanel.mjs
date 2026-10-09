@@ -18,6 +18,13 @@ AddDefaultCharset UTF-8
 AddType image/svg+xml .svg
 AddType application/xml .xml
 
+<IfModule mod_authz_core.c>
+# Hide PHP error logs and dotfiles
+<FilesMatch "^(error_log|\\.)">
+Require all denied
+</FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
 # Force HTTPS (enable SSL / AutoSSL in cPanel first)
