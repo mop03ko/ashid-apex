@@ -28,7 +28,7 @@ RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Language folders without a file name
-RewriteRule ^(mn|en)/?$ /$1/index.html [L,R=301]
+RewriteRule ^(mn|en)/?$ https://%{HTTP_HOST}/$1/index.html [L,R=301]
 </IfModule>
 
 <IfModule mod_headers.c>
