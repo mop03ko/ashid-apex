@@ -28,6 +28,9 @@ jobs:
             echo "aac.mail.mn A:"; dig +short A aac.mail.mn @$r
           done
           echo "SPF:"; dig +short TXT aac.mn @1.1.1.1 | grep -i spf || echo none
+          for mx in $(dig +short MX aac.mn @1.1.1.1 | awk '{print $2}'); do
+            echo "MX host $mx resolves to: $(dig +short A "$mx" @1.1.1.1 | tr '\n' ' ')"
+          done
       - name: Diagnose info@aac.mn delivery
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
