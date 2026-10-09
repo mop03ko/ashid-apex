@@ -1,7 +1,7 @@
 import {readFile,readdir,access} from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
-const root=path.resolve('docs');let pages=0,links=0;
+const root=path.resolve(process.argv[2]||'docs');let pages=0,links=0;
 for(const lang of ['mn','en'])for(const name of await readdir(path.join(root,lang))){
  const file=path.join(root,lang,name),html=await readFile(file,'utf8');pages++;
  assert(html.includes(`<html lang="${lang}">`),file+': language');
