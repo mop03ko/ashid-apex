@@ -37,4 +37,4 @@ jobs:
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
           CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
           CPANEL_PASSWORD: ${{ secrets.CPANEL_PASSWORD }}
-        run: node scripts/mail-diagnose.mjs --set-remote
+        run: node scripts/mail-diagnose.mjs
