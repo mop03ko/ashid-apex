@@ -8,7 +8,7 @@ const site=(process.argv[2]||process.env.SITE_URL||'').replace(/\/+$/,'');
 if(!/^https?:\/\/[^/]+$/.test(site)){console.error('Usage: npm run cpanel -- https://your-domain.mn  (domain root, no sub-path)');process.exit(1);}
 const dist=path.resolve('dist'),root=path.join(dist,'cpanel','public_html'),zip=path.join(dist,'ashid-apex-cpanel.zip');
 await rm(dist,{recursive:true,force:true});await mkdir(root,{recursive:true});
-const env={...process.env,OUT_DIR:root,SITE_URL:site};
+const env={...process.env,OUT_DIR:root,SITE_URL:site,HOSTING:'cpanel'};
 execFileSync(process.execPath,['scripts/build.mjs'],{env,stdio:'inherit'});
 await writeFile(path.join(root,'.htaccess'),`# Ashid Apex Consulting (cPanel / Apache)
 Options -Indexes
@@ -20,6 +20,9 @@ AddType application/xml .xml
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
+# www -> bare domain
+RewriteCond %{HTTP_HOST} ^www\\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 # Force HTTPS (enable SSL / AutoSSL in cPanel first)
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
