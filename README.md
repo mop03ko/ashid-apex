@@ -20,7 +20,7 @@ The root opens Mongolian; every page has a corresponding English page and a lang
 
 ## Inquiry delivery
 
-On aac.mn (cPanel), employer, agency and general inquiry forms send directly: `assets/app.js` posts to `contact.php` (source `server/contact.php`), which emails the request to `info@aac.mn` with PHP `mail()` and sets Reply-To to the visitor's address. The endpoint accepts POST only, checks the Origin, validates required fields, blocks header injection, uses a hidden honeypot field and limits each IP (stored only as a short-lived hash) to 5 requests per 10 minutes. No database or third-party form processor is used.
+On aac.mn (cPanel), employer, agency and general inquiry forms send directly: `assets/app.js` posts to `contact.php` (source `server/contact.php`), which emails the request to `info@aac.mn` through mail.mn's SMTP server (settings from GitHub secrets, stored outside the Document Root; see `CPANEL-GIT.md`), or with PHP `mail()` when SMTP is not configured, and sets Reply-To to the visitor's address. The endpoint accepts POST only, checks the Origin, validates required fields, blocks header injection, uses a hidden honeypot field and limits each IP (stored only as a short-lived hash) to 5 requests per 10 minutes. No database or third-party form processor is used.
 
 If sending fails, or on the GitHub Pages mirror where PHP is unavailable, the form falls back to a reviewable email with email-app, clipboard and text-download actions, and the UI says the request was not sent.
 

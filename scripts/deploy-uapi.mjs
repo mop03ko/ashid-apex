@@ -38,3 +38,14 @@ for(const [rel,files] of [...dirs].sort(([a],[b])=>a.split('/').length-b.split('
   uploaded+=files.length;console.log(`${target}/: ${files.length} file(s)`);
 }
 console.log(`Uploaded ${uploaded} files to ~/${docroot} on ${host}.`);
+
+// SMTP settings for contact.php, written to the account home (outside the Document Root).
+const {SMTP_HOST:smtpHost='',SMTP_PORT:smtpPort='465',SMTP_USER:smtpUser='',SMTP_PASSWORD:smtpPass=''}=process.env;
+if(smtpHost&&smtpUser&&smtpPass){
+  const q=v=>`'${String(v).replace(/[\\']/g,m=>'\\'+m)}'`;
+  const content=`<?php\n// Written by the aac.mn deploy workflow. Do not edit; update the GitHub secrets instead.\nreturn ['host'=>${q(smtpHost)},'port'=>${Number(smtpPort)||465},'user'=>${q(smtpUser)},'pass'=>${q(smtpPass)}];\n`;
+  const form=new FormData();form.append('file','.ashid-apex-smtp.php');form.append('content',content);
+  const r=await call(`${base}/execute/Fileman/save_file_content`,{method:'POST',body:form});
+  if(r?.status!==1)throw new Error(`Could not save SMTP settings: ${(r?.errors||[]).join('; ')}`);
+  console.log(`Saved SMTP settings for contact.php (${smtpHost}:${Number(smtpPort)||465}).`);
+}else console.log('SMTP secrets not set; contact.php uses PHP mail().');
