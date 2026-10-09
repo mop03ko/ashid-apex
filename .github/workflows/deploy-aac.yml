@@ -1,0 +1,55 @@
+name: Deploy to aac.mn
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-aac
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: aac.mn
+      url: https://aac.mn
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check FTP secrets
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          missing=0
+          for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See CPANEL-GIT.md."; missing=1; fi
+          done
+          exit $missing
+
+      - name: Build and verify aac.mn package
+        run: |
+          npm test
+          npm run cpanel -- https://aac.mn
+
+      # Uploads only changed files (tracked in .ftp-deploy-sync-state.json on the server).
+      # Files on the server that are not part of the site are left untouched.
+      - name: Upload to cPanel over FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./dist/cpanel/public_html/
+          server-dir: ${{ secrets.FTP_SERVER_DIR || './' }}

@@ -1,9 +1,31 @@
-# Connect aac.mn to GitHub through cPanel
+# Deploy aac.mn from GitHub
+
+## Automatic deployment (GitHub Actions, recommended)
+
+Every push to `main` runs `.github/workflows/deploy-aac.yml`: it tests the site, builds the package for https://aac.mn, and uploads `dist/cpanel/public_html/` to the cPanel Document Root over FTPS. Only changed files are uploaded; unrelated files on the server are not deleted. It can also be started manually from Actions > Deploy to aac.mn > Run workflow.
+
+One-time setup:
+
+1. cPanel > Files > FTP Accounts: create an FTP account whose directory is the aac.mn Document Root (for example `public_html`). Use a strong password.
+2. Note the FTP server host shown under Configure FTP Client (often `ftp.aac.mn` or the server hostname).
+3. Back up the current Document Root (cPanel > Backup or File Manager > Compress), because automatic uploads replace matching files.
+4. GitHub > repository Settings > Secrets and variables > Actions > New repository secret:
+   - `FTP_SERVER`: FTP host from step 2
+   - `FTP_USERNAME`: full FTP username (for example `deploy@aac.mn`)
+   - `FTP_PASSWORD`: FTP password
+   - `FTP_SERVER_DIR` (optional): target folder relative to the FTP account, ending with `/`. Leave unset when the FTP account opens directly in the Document Root.
+5. Push to `main` or run the workflow manually, then confirm https://aac.mn.
+
+Never commit FTP credentials to the repository. The first run uploads every file; later runs compare against `.ftp-deploy-sync-state.json` stored on the server. Do not delete that file.
+
+Use only one method. If automatic deployment is active, do not also use the cPanel Git deployment below.
+
+## Alternative: manual cPanel Git Version Control
 
 Repository: https://github.com/mop03ko/ashid-apex.git
 Branch: main
 
-## One-time setup
+### One-time setup
 
 1. In cPanel > Domains, confirm the exact Document Root for aac.mn.
 2. Confirm AutoSSL is valid for aac.mn and www.aac.mn. The existing cPanel build enables HTTPS redirects.
@@ -16,7 +38,7 @@ Branch: main
 
 The deployment builds and verifies the site for https://aac.mn, backs up the existing Document Root under ~/ashid-apex-backups, then copies only dist/cpanel/public_html contents. It replaces matching website files including .htaccess but does not remove unrelated files. Review backup storage usage periodically.
 
-## Future updates
+### Future updates
 
 Commit source changes to main, then click Update from Remote and Deploy HEAD Commit. This is a manual pull-and-deploy connection: pushing to GitHub alone does not automatically update the live website.
 
