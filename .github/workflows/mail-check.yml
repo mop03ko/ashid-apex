@@ -28,6 +28,14 @@ jobs:
           for mx in $(dig +short MX aac.mn @1.1.1.1 | awk '{print $2}'); do
             echo "MX host $mx resolves to: $(dig +short A "$mx" @1.1.1.1 | tr '\n' ' ')"
           done
+      - name: Send one test request to contact.php
+        run: |
+          code=$(curl -s -o resp.json -w '%{http_code}' --max-time 40 -H 'Origin: https://aac.mn' \
+            --data-urlencode 'kind=contact' --data-urlencode 'lang=en' --data-urlencode 'consent=on' \
+            --data-urlencode 'name=Website diagnostic' --data-urlencode 'email=info@aac.mn' \
+            --data-urlencode 'body=Automated test from the GitHub mail diagnostic. You can delete this email.' \
+            https://aac.mn/contact.php)
+          echo "HTTP $code: $(cat resp.json)"
       - name: Diagnose info@aac.mn delivery
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}

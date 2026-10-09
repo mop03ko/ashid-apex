@@ -17,7 +17,25 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 
+// Private diagnostic log outside the Document Root: outcome codes only, no visitor data.
+function diag(string $msg): void {
+  $file = dirname(__DIR__) . '/.ashid-apex-contact.log';
+  if (is_file($file) && filesize($file) > 50000) {
+    @rename($file, $file . '.old');
+  }
+  @file_put_contents($file, gmdate('Y-m-d H:i:s') . ' ' . $msg . "\n", FILE_APPEND | LOCK_EX);
+}
+register_shutdown_function(function (): void {
+  $e = error_get_last();
+  if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+    diag('fatal: ' . $e['message'] . ' line ' . $e['line'] . ' (PHP ' . PHP_VERSION . ')');
+  }
+});
+
 function reply(int $code, array $data): void {
+  if ($code !== 405) {
+    diag($code . ' ' . ($data['error'] ?? ($data['ok'] ? 'sent' : 'failed')));
+  }
   http_response_code($code);
   echo json_encode($data, JSON_UNESCAPED_UNICODE);
   exit;
@@ -93,11 +111,12 @@ $smtp = is_file($configFile) ? (array) include $configFile : [];
 if (!empty($smtp['host']) && !empty($smtp['user']) && !empty($smtp['pass'])) {
   $error = smtp_send($smtp, RECIPIENT, $encodedSubject, $headers, $encodedBody);
   if ($error !== null) {
-    error_log('contact.php SMTP: ' . $error);
+    diag('smtp: ' . $error);
   }
-  reply($error === null ? 200 : 502, ['ok' => $error === null]);
+  reply($error === null ? 200 : 502, ['ok' => $error === null, 'error' => $error === null ? null : 'smtp']);
 }
 
+diag('no SMTP settings at ' . $configFile . '; using mail()');
 $sent = mail(RECIPIENT, $encodedSubject, $encodedBody, implode("\r\n", $headers), '-f' . RECIPIENT);
 reply($sent ? 200 : 502, ['ok' => $sent]);
 

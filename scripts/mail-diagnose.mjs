@@ -39,9 +39,15 @@ for(const t of rows){
   console.log(`  ${when} UTC | ${t.type||t.status||''} | delivered to: ${redact(t.deliveredto||'-')} | ${redact(t.message||t.reason||'').slice(0,240)}`);
 }
 
-console.log('5. Recent contact.php errors (public_html/error_log)');
-try{
-  const r=await call(`${base}/execute/Fileman/get_file_content?${new URLSearchParams({dir:'public_html',file:'error_log'})}`);
-  const lines=String(r?.data?.content||'').split('\n').filter(l=>l.includes('contact.php')).slice(-8);
-  console.log(lines.length?lines.map(l=>'  '+redact(l).slice(0,300)).join('\n'):`  none${r?.status!==1?' ('+redact((r?.errors||[]).join('; '))+')':''}`);
-}catch(e){console.log('  unavailable: '+redact(e.message));}
+console.log('5. Recent contact.php outcomes (~/.ashid-apex-contact.log)');
+const {user}=await import('./cpanel-api.mjs');
+let shown=false;
+for(const dir of [undefined,`/home/${user}`]){
+  try{
+    const r=await call(`${base}/execute/Fileman/get_file_content?${new URLSearchParams(dir?{dir,file:'.ashid-apex-contact.log'}:{file:'.ashid-apex-contact.log'})}`);
+    if(r?.status!==1)continue;
+    const lines=String(r.data?.content||'').trim().split('\n').slice(-10);
+    console.log(lines.map(l=>'  '+redact(l).slice(0,300)).join('\n')||'  empty');shown=true;break;
+  }catch{}
+}
+if(!shown)console.log('  log not found yet');
