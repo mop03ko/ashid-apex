@@ -1,0 +1,26 @@
+name: Check aac.mn mail delivery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/aac-mn-she5d5]
+    paths: [scripts/mail-diagnose.mjs, .github/workflows/mail-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Diagnose info@aac.mn delivery
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+          CPANEL_PASSWORD: ${{ secrets.CPANEL_PASSWORD }}
+        run: node scripts/mail-diagnose.mjs
