@@ -2,7 +2,7 @@
 
 Premium bilingual (Mongolian / English) corporate website for international recruitment and workforce solutions in Mongolia.
 
-Live: https://mop03ko.github.io/ashid-apex/
+Live: https://aac.mn (cPanel). Mirror: https://mop03ko.github.io/ashid-apex/
 
 ## Edit and publish
 
@@ -20,7 +20,7 @@ The root opens Mongolian; every page has a corresponding English page and a lang
 
 ## Inquiry delivery
 
-GitHub Pages has no application backend. Employer, agency and general inquiry forms validate required fields, prepare a reviewable email, and offer email-app, clipboard and text-download actions. **Requests are not automatically submitted or stored.** The visitor must send the prepared email to `Ashidapex.consulting@gmail.com`; the UI states this explicitly. No API secrets or third-party form processors are used. Direct delivery can be added later with an owner-configured form endpoint and corresponding privacy update.
+GitHub Pages has no application backend. Employer, agency and general inquiry forms validate required fields, prepare a reviewable email, and offer email-app, clipboard and text-download actions. **Requests are not automatically submitted or stored.** The visitor must send the prepared email to `info@aac.mn`; the UI states this explicitly. No API secrets or third-party form processors are used. Direct delivery can be added later with an owner-configured form endpoint and corresponding privacy update.
 
 ## Brand and content
 
@@ -34,12 +34,14 @@ Phone `77777777` is the temporary number supplied by the owner. The website uses
 
 ## Maintenance
 
-Update `company.url` when moving to a custom domain, then rebuild to regenerate canonical URLs and sitemap. Review public contact details and legal copy as business operations change. Keep sensitive documents and credentials out of this public repository.
+`company.url` (`https://aac.mn`) is the canonical domain for every build, including the GitHub Pages mirror. Update it if the domain changes, then rebuild to regenerate canonical URLs and sitemap. Review public contact details and legal copy as business operations change. Keep sensitive documents and credentials out of this public repository.
 
 ## cPanel deployment
 
+Pushes to `main` deploy to https://aac.mn automatically via GitHub Actions once the FTP secrets are set; see `CPANEL-GIT.md`. To build a package manually:
+
 ```sh
-npm run cpanel -- https://your-domain.mn
+npm run cpanel -- https://aac.mn
 ```
 
 Builds `dist/cpanel/public_html/` (with `.htaccess`) and `dist/ashid-apex-cpanel.zip`, using the given domain for canonical, hreflang, Open Graph, sitemap and robots URLs. In cPanel File Manager, open `public_html`, upload the zip, choose **Extract**, then delete the zip. Enable SSL (AutoSSL) before relying on the HTTPS redirect in `.htaccess`. `dist/` is not committed.
