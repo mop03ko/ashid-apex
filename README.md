@@ -35,3 +35,11 @@ Phone `77777777` is the temporary number supplied by the owner. The website uses
 ## Maintenance
 
 Update `company.url` when moving to a custom domain, then rebuild to regenerate canonical URLs and sitemap. Review public contact details and legal copy as business operations change. Keep sensitive documents and credentials out of this public repository.
+
+## cPanel deployment
+
+```sh
+npm run cpanel -- https://your-domain.mn
+```
+
+Builds `dist/cpanel/public_html/` (with `.htaccess`) and `dist/ashid-apex-cpanel.zip`, using the given domain for canonical, hreflang, Open Graph, sitemap and robots URLs. In cPanel File Manager, open `public_html`, upload the zip, choose **Extract**, then delete the zip. Enable SSL (AutoSSL) before relying on the HTTPS redirect in `.htaccess`. `dist/` is not committed.

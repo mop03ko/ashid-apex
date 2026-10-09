@@ -1,6 +1,9 @@
 import {mkdir,writeFile,cp} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {content,company,slugs} from '../src/content.mjs';
-const out=new URL('../docs/',import.meta.url);
+const out=process.env.OUT_DIR?pathToFileURL(resolve(process.env.OUT_DIR)+'/'):new URL('../docs/',import.meta.url);
+if(process.env.SITE_URL)company.url=process.env.SITE_URL.replace(/\/+$/,'');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lines=s=>esc(s).replaceAll('\n','<br>');
 const icon=(i)=>{const paths=['M4 20V8l8-5 8 5v12M8 20v-7h8v7M8 9h.01M16 9h.01','M4 20V9l6 3V5l10 5v10ZM7 16h1m4 0h1m4 0h1','M2 20 9 6l4 7 3-4 6 11M6 13l3 2 3-2','M12 21V10M12 14C3 14 3 8 3 5c6 0 9 3 9 9ZM12 10c0-6 4-8 9-8 0 6-3 8-9 8','M3 15h18L19 5H5ZM6 10h12M9 5l-1 10m7-10 1 10M12 15v6m-4 0h8','M4 17H2v-6l3-6h14l3 6v6h-2M4 17h16M5 11h14M5 17v3m14-3v3M6 14h.01m12 0h.01','M3 20V8l9-5 9 5v12ZM7 20v-9h10v9M7 15h10'];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <path d="${paths[i%paths.length]}"/></svg>`;};
@@ -44,7 +47,7 @@ for(const lang of ['mn','en']){
  }
 }
 await cp(new URL('../assets/',import.meta.url),new URL('assets/',out),{recursive:true});
-await writeFile(new URL('.nojekyll',out),'');
+if(!process.env.OUT_DIR)await writeFile(new URL('.nojekyll',out),'');
 await writeFile(new URL('index.html',out),'<!doctype html><html lang="mn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ashid Apex Consulting</title><meta http-equiv="refresh" content="0;url=mn/index.html"><link rel="canonical" href="'+company.url+'/mn/index.html"></head><body><a href="mn/index.html">Монгол</a> · <a href="en/index.html">English</a></body></html>');
 await writeFile(new URL('404.html',out),`<!doctype html><html lang="mn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Хуудас олдсонгүй | Ashid Apex</title><style>body{margin:12vh auto;padding:24px;max-width:650px;background:#f4f7f6;color:#102D48;font:20px/1.6 Arial}h1{font-size:48px}a{color:#12605d}</style></head><body><p>ASHID APEX CONSULTING</p><h1>404</h1><p>Хуудас олдсонгүй.<br>This page could not be found.</p><a href="${company.url}/mn/index.html">Нүүр хуудас</a> · <a href="${company.url}/en/index.html">Home</a></body></html>`);
 await writeFile(new URL('sitemap.xml',out),'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+['mn','en'].flatMap(l=>slugs.map(s=>`<url><loc>${company.url}/${l}/${s==='home'?'index':s}.html</loc></url>`)).join('')+'</urlset>');
