@@ -18,6 +18,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Public DNS for aac.mn
+        run: |
+          for r in 1.1.1.1 8.8.8.8; do
+            echo "== resolver $r"
+            echo "NS:";  dig +short NS aac.mn @$r
+            echo "MX:";  dig +short MX aac.mn @$r
+            echo "A:";   dig +short A aac.mn @$r
+            echo "aac.mail.mn A:"; dig +short A aac.mail.mn @$r
+          done
+          echo "SPF:"; dig +short TXT aac.mn @1.1.1.1 | grep -i spf || echo none
       - name: Diagnose info@aac.mn delivery
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
