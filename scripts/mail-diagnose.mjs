@@ -10,6 +10,13 @@ const uapi=async(mod,fn,params={})=>{
   catch(e){console.log(`  ${mod}::${fn} unavailable: ${redact(e.message)}`);return null;}
 };
 
+// --set-remote: route aac.mn mail to its public MX (mail.mn) instead of local cPanel mailboxes.
+if(process.argv.includes('--set-remote')){
+  console.log('0. Set mail routing to remote');
+  const r=await call(`${base}/execute/Email/set_always_accept?${new URLSearchParams({domain:DOMAIN,mxcheck:'remote'})}`);
+  console.log(r.status===1?'  done':`  failed: ${redact((r.errors||[]).join('; '))}`);
+}
+
 console.log('1. Mailbox');
 const pops=await uapi('Email','list_pops');
 if(pops)console.log(`  ${MAILBOX} exists: ${pops.some(p=>String(p.email).toLowerCase()===MAILBOX)?'yes':'NO'} (mailboxes on account: ${pops.length})`);
