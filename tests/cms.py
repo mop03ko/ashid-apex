@@ -60,8 +60,9 @@ with tempfile.TemporaryDirectory(prefix='aac-cms-test-') as tmp:
         d=api('save',{'kind':'jobs','revision':2,'value':[j]},csrf)
         assert 'Test job mn' not in req('/cms-page.php?page=mn/jobs')[1]
         j['published']=True
+        j['en']['salary']='$1000 / month'
         d=api('save',{'kind':'jobs','revision':3,'value':[j]},csrf)
-        html=req('/cms-page.php?page=en/jobs')[1];assert 'Test job en' in html and 'mailto:office@example.com?subject=' in html
+        html=req('/cms-page.php?page=en/jobs')[1];assert 'Test job en' in html and '$1000 / month' in html and 'mailto:office@example.com?subject=' in html
         j['mn']['deadline']=j['en']['deadline']='2000-01-01'
         d=api('save',{'kind':'jobs','revision':4,'value':[j]},csrf)
         assert 'Test job en' not in req('/cms-page.php?page=en/jobs')[1]

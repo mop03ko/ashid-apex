@@ -20,7 +20,7 @@ try {
    foreach($labels as $k=>$label)if($j[$k]!=='')$cards.='<div><dt>'.$label.'</dt><dd>'.nl2br(aac_h($j[$k])).'</dd></div>';
    $cards.='</dl><a class="button" href="mailto:'.aac_h($email).'?subject='.rawurlencode(($en?'Job application: ':'Ажлын байрны хүсэлт: ').$j['title']).'">'.($en?'Apply by email ↗':'Имэйлээр хүсэлт илгээх ↗').'</a></article>';
   }
-  if($cards!=='')$html=preg_replace('~<div class="empty-state">.*?</div>~s','<div class="cms-jobs">'.$cards.'</div>',$html,1);
+  if($cards!=='')$html=preg_replace_callback('~<div class="empty-state">.*?</div>~s',fn()=>'<div class="cms-jobs">'.$cards.'</div>',$html,1);
  }
  $html=str_replace('</head>','<link rel="stylesheet" href="/admin/public.css?v=1"></head>',$html);
  echo $html;
