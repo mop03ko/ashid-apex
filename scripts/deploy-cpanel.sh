@@ -21,6 +21,8 @@ esac
 command -v node >/dev/null || { echo "Enable Node.js 20+ in the cPanel shell PATH."; exit 1; }
 node -e 'if(Number(process.versions.node.split(".")[0])<20)process.exit(1)'
 command -v zip >/dev/null || { echo "zip is required."; exit 1; }
+command -v php >/dev/null || { echo "Enable PHP 8.1+ CLI for the CMS deployment check."; exit 1; }
+php -r 'if(PHP_VERSION_ID<80100 || !extension_loaded("gd") || !extension_loaded("session"))exit(1);' || { echo "PHP 8.1+, GD and sessions are required."; exit 1; }
 npm run cpanel -- https://aac.mn
 # Back up the live directory outside the public web root before replacing files.
 backup_root="${HOME}/ashid-apex-backups"
@@ -31,6 +33,8 @@ mkdir -p "$backup_root"
 backup="$(mktemp "$backup_root/before-deploy-XXXXXXXX.tar.gz")"
 tar -czf "$backup" -C "$destination" .
 # Copy only generated website files. Keep uploads, mail configuration and ACME files.
-cp -R dist/cpanel/public_html/. "$destination/"
+# Activate routing last, after all PHP/templates are installed.
+find dist/cpanel/public_html -mindepth 1 -maxdepth 1 ! -name .htaccess -exec cp -R {} "$destination/" \;
+cp dist/cpanel/public_html/.htaccess "$destination/.htaccess"
 echo "Deployed $(git rev-parse --short HEAD) to $destination"
 echo "Backup: $backup"

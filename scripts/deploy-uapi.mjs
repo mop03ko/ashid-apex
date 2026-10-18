@@ -17,11 +17,20 @@ async function walk(rel){
   }
 }
 dirs.set('',[]);await walk('');
+// Activate PHP routing only after every runtime file has reached the server.
+dirs.set('',dirs.get('').filter(f=>!['.htaccess','contact.php'].includes(f)));
+dirs.set('__activate__',['contact.php','.htaccess']);
 
 let uploaded=0;
-for(const [rel,files] of [...dirs].sort(([a],[b])=>a.split('/').length-b.split('/').length||a.localeCompare(b))){
-  const target=rel?`${docroot}/${rel}`:docroot;
-  if(rel){
+for(const [rel,files] of [...dirs].sort(([a],[b])=>a==='__activate__'?1:b==='__activate__'?-1:a.split('/').length-b.split('/').length||a.localeCompare(b))){
+  if(rel==='__activate__'){
+    const site=process.env.SITE_URL||'https://aac.mn';
+    const health=await fetch(`${site}/admin/health.php?deploy=${Date.now()}`,{signal:AbortSignal.timeout(20000),redirect:'error'});
+    if(!health.ok||(await health.json()).ok!==true)throw new Error('CMS readiness check failed. Routing was not activated. Enable PHP 8.1+, GD, sessions and writable private storage, then redeploy.');
+    console.log('CMS PHP runtime and private storage verified; activating routing.');
+  }
+  const target=rel&&rel!=='__activate__'?`${docroot}/${rel}`:docroot;
+  if(rel&&rel!=='__activate__'){
     const parent=path.posix.dirname(target),name=path.posix.basename(target);
     const q=new URLSearchParams({cpanel_jsonapi_user:user,cpanel_jsonapi_apiversion:'2',cpanel_jsonapi_module:'Fileman',cpanel_jsonapi_func:'mkdir',path:parent,name});
     const r=await call(`${base}/json-api/cpanel?${q}`);

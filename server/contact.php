@@ -3,7 +3,13 @@
 // Deployed to the cPanel Document Root by scripts/cpanel.mjs; not used on GitHub Pages.
 declare(strict_types=1);
 
-const RECIPIENT = 'info@aac.mn';
+const RECIPIENT = 'info@aac.mn'; // Fixed authenticated sender; delivery address is configurable.
+$recipient = RECIPIENT;
+if (is_file(__DIR__ . '/admin/core.php')) {
+  require_once __DIR__ . '/admin/core.php';
+  try { $candidate = aac_state()['settings']['email'] ?? RECIPIENT; if (filter_var($candidate, FILTER_VALIDATE_EMAIL)) $recipient = $candidate; }
+  catch (Throwable $e) { error_log('AAC contact settings unavailable'); }
+}
 const ALLOWED_HOSTS = ['aac.mn', 'www.aac.mn'];
 const SUBJECTS = [
   'employers' => 'Workforce request / Ажилтан авах хүсэлт',
@@ -91,14 +97,14 @@ $configFile = dirname(__DIR__) . '/.ashid-apex-smtp.php';
 $smtp = is_file($configFile) ? (array) include $configFile : [];
 
 if (!empty($smtp['host']) && !empty($smtp['user']) && !empty($smtp['pass'])) {
-  $error = smtp_send($smtp, RECIPIENT, $encodedSubject, $headers, $encodedBody);
+  $error = smtp_send($smtp, $recipient, $encodedSubject, $headers, $encodedBody);
   if ($error !== null) {
     error_log('contact.php SMTP: ' . $error);
   }
   reply($error === null ? 200 : 502, ['ok' => $error === null]);
 }
 
-$sent = mail(RECIPIENT, $encodedSubject, $encodedBody, implode("\r\n", $headers), '-f' . RECIPIENT);
+$sent = mail($recipient, $encodedSubject, $encodedBody, implode("\r\n", $headers), '-f' . RECIPIENT);
 reply($sent ? 200 : 502, ['ok' => $sent]);
 
 // Minimal authenticated SMTP client (implicit TLS on 465, STARTTLS otherwise).
