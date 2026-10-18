@@ -18,8 +18,8 @@ async function walk(rel){
 }
 dirs.set('',[]);await walk('');
 // Activate PHP routing only after every runtime file has reached the server.
-dirs.set('',dirs.get('').filter(f=>f!=='.htaccess'));
-dirs.set('__activate__',['.htaccess']);
+dirs.set('',dirs.get('').filter(f=>!['.htaccess','contact.php'].includes(f)));
+dirs.set('__activate__',['contact.php','.htaccess']);
 
 let uploaded=0;
 for(const [rel,files] of [...dirs].sort(([a],[b])=>a==='__activate__'?1:b==='__activate__'?-1:a.split('/').length-b.split('/').length||a.localeCompare(b))){
