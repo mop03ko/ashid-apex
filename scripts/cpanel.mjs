@@ -3,6 +3,7 @@
 import {rm,writeFile,mkdir,copyFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
+import {packageCMS} from './cms-package.mjs';
 
 const site=(process.argv[2]||process.env.SITE_URL||'').replace(/\/+$/,'');
 if(!/^https?:\/\/[^/]+$/.test(site)){console.error('Usage: npm run cpanel -- https://your-domain.mn  (domain root, no sub-path)');process.exit(1);}
@@ -31,6 +32,8 @@ RewriteEngine On
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# Render editable bilingual pages through PHP (also covers existing .html files)
+RewriteRule ^(mn|en)/(index|about|services|industries|employers|partners|process|faq|jobs|contact|privacy|terms)\\.html$ cms-page.php?page=$1/$2 [L]
 # Language folders without a file name
 RewriteRule ^(mn|en)/?$ /$1/index.html [L,R=301]
 </IfModule>
@@ -54,5 +57,6 @@ AddOutputFilterByType DEFLATE text/html text/css application/javascript text/jav
 // Direct inquiry delivery (PHP mail); GitHub Pages builds fall back to the email preview.
 await copyFile('server/contact.php',path.join(root,'contact.php'));
 execFileSync(process.execPath,['scripts/verify.mjs',root],{stdio:'inherit'});
+await packageCMS(root);
 execFileSync('zip',['-r','-q','-X',zip,'.'],{cwd:root,stdio:'inherit'});
 console.log(`cPanel package for ${site}:\n  ${path.relative('.',root)}/\n  ${path.relative('.',zip)}`);
