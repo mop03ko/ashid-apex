@@ -1,5 +1,5 @@
 import mn from './mn.mjs';
-export const company = {name:'Ashid Apex Consulting LLC',email:'info@aac.mn',phone:'75579509',tel:'+97675579509',url:'https://aac.mn',registration:'',license:'',facebook:'',partnerCountries:[]}; // Confirmed details only: empty values stay hidden. partnerCountries: [{en:'Country',mn:'Улс'}]
+export const company = {name:'Ashid Apex Consulting LLC',email:'info@aac.mn',phone:'75579509',tel:'+97675579509',url:'https://aac.mn',registration:'',license:'',facebook:'https://www.facebook.com/profile.php?id=61594817473047',partnerCountries:[],map:{lat:47.9212694,lng:106.9056959}}; // Confirmed details only: empty values stay hidden. partnerCountries: [{en:'Country',mn:'Улс'}]
 export const slugs=['home','about','services','industries','employers','partners','process','faq','jobs','contact','privacy','terms'];
 export const content={
 en:{

@@ -13,6 +13,9 @@
   }
  }
 
+ // Office map: loads Google Maps only when the visitor asks for it.
+ document.querySelectorAll('.map-frame').forEach(frame=>{const load=frame.querySelector('.map-load');if(!load)return;load.hidden=false;load.addEventListener('click',()=>{const map=document.createElement('iframe');map.src=frame.dataset.mapSrc;map.title=frame.dataset.mapTitle;map.loading='lazy';map.referrerPolicy='no-referrer-when-downgrade';map.allowFullscreen=true;frame.replaceChildren(map);map.focus();});});
+
  // Industry filter for published job listings (rendered by the CMS on aac.mn).
  const jobs=[...document.querySelectorAll('.cms-job')];
  if(jobs.length>1){
