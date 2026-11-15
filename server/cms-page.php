@@ -25,6 +25,6 @@ try {
   }
   if($cards!=='')$html=preg_replace_callback('~<div class="empty-state">.*?</div>~s',fn()=>'<div class="cms-jobs">'.$cards.'</div>',$html,1);
  }
- $html=str_replace('</head>','<link rel="stylesheet" href="/admin/public.css?v=1"></head>',$html);
+ $html=str_replace('</head>','<link rel="stylesheet" href="/admin/public.css?v=2"></head>',$html);
  echo $html;
 }catch(Throwable $e){error_log('AAC CMS render: '.$e->getMessage());http_response_code(503);header('Retry-After: 60');echo 'Сайтыг түр шинэчилж байна. Please try again shortly.';}

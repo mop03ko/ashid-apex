@@ -18,6 +18,9 @@ ErrorDocument 404 /404.html
 AddDefaultCharset UTF-8
 AddType image/svg+xml .svg
 AddType application/xml .xml
+AddType font/woff2 .woff2
+AddType image/webp .webp
+AddType application/manifest+json .webmanifest
 
 <IfModule mod_authz_core.c>
 # Hide PHP error logs and dotfiles
@@ -44,7 +47,7 @@ RewriteRule ^(mn|en)/?$ /$1/index.html [L,R=301]
 Header always set X-Content-Type-Options "nosniff"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 Header always set X-Frame-Options "SAMEORIGIN"
-<FilesMatch "\\.(css|js|svg|png)$">
+<FilesMatch "\\.(css|js|svg|png|jpg|webp|woff2|ico)$">
 Header set Cache-Control "public, max-age=2592000"
 </FilesMatch>
 <FilesMatch "\\.html$">

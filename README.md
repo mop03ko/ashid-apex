@@ -20,19 +20,25 @@ The root opens English (visitors choose Mongolian with the MN link in the header
 
 ## Inquiry delivery
 
+Employer and partner forms are split into three steps (contact, role or agency, terms) with a progress indicator; each step is validated before moving on, and without JavaScript all steps show at once. The general contact form stays on one step.
+
 On aac.mn (cPanel), employer, agency and general inquiry forms send directly: `assets/app.js` posts to `contact.php` (source `server/contact.php`), which emails the request to `info@aac.mn` through mail.mn's SMTP server (settings from GitHub secrets, stored outside the Document Root; see `CPANEL-GIT.md`), or with PHP `mail()` when SMTP is not configured, and sets Reply-To to the visitor's address. The endpoint accepts POST only, checks the Origin, validates required fields, blocks header injection, uses a hidden honeypot field and limits each IP (stored only as a short-lived hash) to 5 requests per 10 minutes. No database or third-party form processor is used.
 
 If sending fails, or on the GitHub Pages mirror where PHP is unavailable, the form falls back to a reviewable email with email-app, clipboard and text-download actions, and the UI says the request was not sent.
 
 ## Brand and content
 
-Concept 01 (geometric A with an ascending teal path) is implemented as a lightweight SVG adaptation of the supplied logo. Shared headers, footers, favicon, About page, hero illustration and social preview use this identity. The globe illustration is symbolic, not a claim of offices or an established country network. Stock photos in `assets/photos/` (Freepik free license; sources and authors in `src/photos.mjs`, credited on the Terms page and linked from every footer) illustrate industries and work settings only; they do not depict clients, candidates or staff. No fabricated clients, testimonials, placement statistics, licences or vacancies appear.
+Concept 01 (geometric A with an ascending teal path) is implemented as a lightweight SVG adaptation of the supplied logo. Shared headers, footers, favicon, About page, hero illustration and social preview use this identity. The globe illustration is symbolic, not a claim of offices or an established country network. Typography uses Manrope (SIL Open Font License, `assets/fonts/OFL.txt`), self-hosted as WOFF2 subsets that include Mongolian Cyrillic (Ө, Ү), so pages make no third-party font requests. Stock photos in `assets/photos/` (JPEG with WebP versions served through `<picture>`) (Freepik free license; sources and authors in `src/photos.mjs`, credited on the Terms page and linked from every footer) illustrate industries and work settings only; they do not depict clients, candidates or staff. No fabricated clients, testimonials, placement statistics, licences or vacancies appear.
 
 Phone `75579509` is the company number; the call link uses Mongolia country code (+97675579509). The admin panel can override it, and a saved copy of the old placeholder `77777777` is ignored. WhatsApp is not shown until a WhatsApp-enabled number is confirmed. Address and company email follow supplied project content. Jobs displays an honest empty state until verified vacancies are available.
 
 ## Checks
 
 `npm test` verifies every localized page, local link and asset, document language, canonical/alternate metadata, one primary heading, unique IDs and form label targets. Browser QA covers desktop/mobile layouts, navigation, language switching, FAQ disclosure, validation and request preview. `assets/apex-social.png` is the raster social preview generated from `assets/apex-social.svg`.
+
+## Details awaiting confirmation
+
+These stay hidden until filled in `src/content.mjs` (`company`): `registration` and `license` (shown in every footer), `facebook` (footer and contact details) and `partnerCountries` as `[{en, mn}]` (Partners page). Add only confirmed facts.
 
 ## Maintenance
 
