@@ -32,6 +32,8 @@ RewriteEngine On
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# The site opens in English; visitors switch to Mongolian with the MN link in the header
+RewriteRule ^$ /en/index.html [L,R=302]
 # Render editable bilingual pages through PHP (also covers existing .html files)
 RewriteRule ^(mn|en)/(index|about|services|industries|employers|partners|process|faq|jobs|contact|privacy|terms)\\.html$ cms-page.php?page=$1/$2 [L]
 # Language folders without a file name

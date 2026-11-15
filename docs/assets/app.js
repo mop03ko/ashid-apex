@@ -6,7 +6,7 @@
  const en=form.dataset.language==='en',panel=form.closest('.form-panel'),preview=panel.querySelector('.request-preview'),text=preview.querySelector('textarea'),status=preview.querySelector('.form-status');
  const sent=panel.querySelector('.request-sent'),submit=form.querySelector('[type=submit]'),label=submit.innerHTML;
  let body='',subject='';
- const showPreview=()=>{text.value=body;preview.querySelector('.email-action').href='mailto:info@aac.mn?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);form.hidden=true;preview.hidden=false;status.textContent=form.dataset.failed;preview.focus({preventScroll:true});preview.scrollIntoView({block:'start',behavior:'instant'});};
+ const showPreview=()=>{text.value=body;preview.querySelector('.email-action').href='mailto:'+(document.querySelector('.topbar a[href^="mailto:"]')?.textContent.trim()||'info@aac.mn')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);form.hidden=true;preview.hidden=false;status.textContent=form.dataset.failed;preview.focus({preventScroll:true});preview.scrollIntoView({block:'start',behavior:'instant'});};
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(!form.reportValidity()||submit.disabled)return;
   const data=new FormData(form);subject='Ashid Apex — '+((en?{employers:'Workforce request',partners:'Agency partnership inquiry',contact:'General inquiry'}:{employers:'Ажилтан авах хүсэлт',partners:'Хамтран ажиллах хүсэлт',contact:'Холбоо барих хүсэлт'})[form.dataset.inquiry]);
