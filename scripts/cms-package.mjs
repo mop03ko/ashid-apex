@@ -7,7 +7,7 @@ export async function packageCMS(root){
  for(const lang of ['mn','en'])for(const slug of ['index','about','services','industries','employers','partners','process','faq','jobs','contact','privacy','terms']){
   const page=`${lang}/${slug}`,fields=[];let html=await readFile(path.join(root,`${page}.html`),'utf8');
   html=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>|<[^>]+>|[^<]+/gi,part=>{
-   if(part.startsWith('<')||!/[\p{L}\p{N}]/u.test(part)||part.includes('©')||part==='info@aac.mn'||part==='77777777')return part;
+   if(part.startsWith('<')||!/[\p{L}\p{N}]/u.test(part)||part.includes('©')||part==='info@aac.mn'||part==='75579509')return part;
    const id=lang+'_'+createHash('sha256').update(part).digest('hex').slice(0,20);
    manifest.fields[id]=part;if(!fields.includes(id))fields.push(id);return `{{AAC:${id}}}`;
   });

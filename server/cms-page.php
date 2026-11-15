@@ -7,9 +7,12 @@ header('Content-Type: text/html; charset=utf-8');header('Cache-Control: no-cache
 try {
  $state=aac_state();$defaults=aac_defaults();$html=file_get_contents(__DIR__.'/admin/templates/'.str_replace('/','-',$page).'.html');
  $tokens=[];foreach($defaults['pages'][$page]['fields'] as $id)$tokens['{{AAC:'.$id.'}}']=array_key_exists($id,$state['texts'])?aac_h($state['texts'][$id]):$defaults['fields'][$id];
- $html=strtr($html,$tokens);$email=$state['settings']['email']??'info@aac.mn';$phone=$state['settings']['phone']??'+97677777777';
+ $html=strtr($html,$tokens);$email=$state['settings']['email']??'info@aac.mn';$phone=$state['settings']['phone']??'75579509';
+ // 77777777 was a temporary placeholder; a saved copy of it must not hide the real number.
+ if(in_array(preg_replace('/[^0-9]/','',$phone),['77777777','97677777777'],true))$phone='75579509';
+ $tel=preg_replace('/[^+0-9]/','',$phone);if($tel!==''&&$tel[0]!=='+')$tel='+976'.$tel;
  // Contact settings apply consistently to visible details and mailto/tel links.
- $html=strtr($html,['info@aac.mn'=>aac_h($email),'+97677777777'=>aac_h(preg_replace('/[^+0-9]/','',$phone)),'77777777'=>aac_h($phone)]);
+ $html=strtr($html,['info@aac.mn'=>aac_h($email),'+97675579509'=>aac_h($tel),'75579509'=>aac_h($phone)]);
  $image=$state['images'][$page]??[];
  if(!empty($image['name']))$html=str_replace('<main id="main" tabindex="-1">','<main id="main" tabindex="-1"><figure class="wrap cms-banner"><img src="/admin/media.php?name='.rawurlencode($image['name']).'" alt="'.aac_h($image['alt']).'" width="1440" height="640"></figure>',$html);
  if(str_ends_with($page,'/jobs')){

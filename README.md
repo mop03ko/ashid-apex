@@ -28,7 +28,7 @@ If sending fails, or on the GitHub Pages mirror where PHP is unavailable, the fo
 
 Concept 01 (geometric A with an ascending teal path) is implemented as a lightweight SVG adaptation of the supplied logo. Shared headers, footers, favicon, About page, hero illustration and social preview use this identity. The globe illustration is symbolic, not a claim of offices or an established country network. No fabricated clients, testimonials, placement statistics, licences or vacancies appear.
 
-Phone `77777777` is the temporary number supplied by the owner. The website uses Mongolia country code +976 for the call link. WhatsApp is not shown until a WhatsApp-enabled number is confirmed. Address and company email follow supplied project content. Jobs displays an honest empty state until verified vacancies are available.
+Phone `75579509` is the company number; the call link uses Mongolia country code (+97675579509). The admin panel can override it, and a saved copy of the old placeholder `77777777` is ignored. WhatsApp is not shown until a WhatsApp-enabled number is confirmed. Address and company email follow supplied project content. Jobs displays an honest empty state until verified vacancies are available.
 
 ## Checks
 
